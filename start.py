@@ -1,13 +1,15 @@
-"""One-click launcher:  python start.py   (or double-click start.bat / run with any Python)
+"""One-click launcher:  python start.py
+
+Run it with the Python of the environment you want to use (e.g. an activated virtualenv). It never switches
+interpreters by itself.
 
 What it does, in order:
- 1. re-launches itself with the project virtualenv (D:\\Transformer\\.venv) when started with another Python;
- 2. checks that the required packages and (for the local OCR route) the model folders are present --
+ 1. checks that the required packages and (for the local OCR route) the model folders are present --
     it only REPORTS what is missing and prints the command; it never installs anything;
- 3. starts the app (single worker, 127.0.0.1 unless settings say otherwise);
- 4. warms up the local OCR engine in the background (first run exports the OpenVINO model, ~30-45 s);
- 5. opens the browser once the server answers;
- 6. on first start, tells you where the invite-code file is (the codes themselves are never printed).
+ 2. starts the app (single worker, 127.0.0.1 unless settings say otherwise);
+ 3. warms up the local OCR engine in the background (first run exports the OpenVINO model, ~30-45 s);
+ 4. opens the browser once the server answers;
+ 5. on first start, tells you where the invite-code file is (the codes themselves are never printed).
 
 Options:  --no-browser   do not open the browser
           --no-warmup    do not pre-load the local OCR engine
@@ -16,7 +18,6 @@ Options:  --no-browser   do not open the browser
 from __future__ import annotations
 
 import os
-import subprocess
 import sys
 import threading
 import time
@@ -25,18 +26,10 @@ import webbrowser
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
-VENV_PY = ROOT.parent / ".venv" / "Scripts" / "python.exe"
 REQUIRED = ["fastapi", "uvicorn", "multipart", "argon2", "filelock", "httpx", "PIL", "json_repair"]
 # local OCR (PP-OCRv6): openvino at run time; torch + transformers only for the one-time model export
 OPTIONAL_OCR = ["openvino", "torch", "transformers"]
 MODEL_DIRS = ["PP-OCRv6_medium_det_safetensors", "PP-OCRv6_medium_rec_safetensors"]
-
-
-def _in_venv() -> bool:
-    try:
-        return Path(sys.executable).resolve() == VENV_PY.resolve()
-    except OSError:
-        return False
 
 
 def _missing(mods: list[str]) -> list[str]:
@@ -65,8 +58,6 @@ def main(argv: list[str]) -> int:
             stream.reconfigure(encoding="utf-8", errors="replace")
         except Exception:
             pass
-    if VENV_PY.exists() and not _in_venv():
-        return subprocess.call([str(VENV_PY), str(Path(__file__).resolve()), *argv], cwd=str(ROOT))
     os.chdir(ROOT)
     sys.path.insert(0, str(ROOT))
 

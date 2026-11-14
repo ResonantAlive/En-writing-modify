@@ -19,15 +19,15 @@ pip install -r requirements.txt
 python start.py
 ```
 
-macOS / Linux 如果没有 `python` 命令，把上面的 `python` 换成 `python3`。Windows 也可以在资源管理器里双击 `start.bat`（等价于 `python start.py`）。
+macOS / Linux 如果没有 `python` 命令，把上面的 `python` 换成 `python3`。
+
+`start.py` 不会自己切换 Python：它用运行它的那个解释器，所以请先激活装好依赖的虚拟环境，再在同一个终端里运行。缺包时它只会提示安装命令，不会自动安装。Windows 上的 `start.bat` 等价于 `python start.py`，用的是 PATH 里的 `python`，不会自动激活 `.venv`，所以用虚拟环境时请在已激活的终端里运行，不要直接双击。
 
 `start.py` 会：
 1. 检查依赖和模型目录，**只报告缺什么、给出安装命令，从不自动安装**；
 2. 启动服务（单 worker，默认只监听 `127.0.0.1:8000`）；
 3. 后台预热本地识别引擎（第一次会把 PP-OCRv6 导出成 OpenVINO 模型到 `data/ov_models/`，约 30–45 秒，之后不到 1 秒）；
 4. 服务就绪后自动打开浏览器，并在控制台显示邀请码文件的位置（不显示邀请码本身）。
-
-（如果项目上一级目录里有 `..\.venv\Scripts\python.exe`，脚本会改用它重新启动自己；一般情况下可以忽略。）
 
 **只用视觉模型路线**：做完上面几步就够了，不需要额外安装。
 
