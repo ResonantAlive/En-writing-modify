@@ -5,10 +5,8 @@ eval_out/
 __pycache__/
 *.pyc
 .pytest_cache/
-# model weights (read-only, large)
+# model weights (large; PP-OCRv6 is committed, these are not)
 hunyuan_OCR/
-PP-OCRv6_medium_det_safetensors/
-PP-OCRv6_medium_rec_safetensors/
 Pd-VL-1.6/
 test_data/
 ocr_bench/cache/
