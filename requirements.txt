@@ -1,0 +1,20 @@
+# Web framework / server (OpenAPI built in; single worker)
+fastapi==0.162.6
+uvicorn==0.54.0
+# multipart upload parsing (M2 uploads)
+python-multipart==0.0.33
+# argon2id password hashing
+argon2-cffi==25.1.0
+# cross-process file locks (executor lock, counters, json stores) -- already in venv
+filelock>=3.29
+# HTTP client for provider calls (already in venv)
+httpx>=0.28
+# tests
+pytest>=9
+# images (HEIC) and LLM output repair
+pillow
+pillow-heif
+json-repair
+# local OCR route (PP-OCRv6). Runtime: openvino. One-time model export (or backend "torch"): torch + transformers.
+openvino>=2026.2
+# torch / transformers: installed by the user (versions shown to them first); not pinned here

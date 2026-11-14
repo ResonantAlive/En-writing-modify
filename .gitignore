@@ -1,0 +1,15 @@
+data/
+eval_data/
+eval_out/
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+# model weights (read-only, large)
+hunyuan_OCR/
+PP-OCRv6_medium_det_safetensors/
+PP-OCRv6_medium_rec_safetensors/
+Pd-VL-1.6/
+test_data/
+ocr_bench/cache/
+ocr_bench/results/
