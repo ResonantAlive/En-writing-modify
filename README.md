@@ -21,6 +21,8 @@ python start.py
 
 macOS / Linux 如果没有 `python` 命令，把上面的 `python` 换成 `python3`。
 
+**macOS 一键部署**：在项目目录里运行 `bash setup_macos.sh`。它会找 Python 3.12（没有就询问是否用 Homebrew 安装）、建 `.venv`、装依赖、检查、启动；每一步都会先打印要执行的命令。需要本地识别、又没有现成的 `data/ov_models/` 时，会先问你再装 `torch` 和 `transformers`。依赖装好后再运行同一条命令就是直接启动。常用选项：`--yes` 询问全部自动确认，`--ocr` / `--no-ocr` 直接决定是否装 torch，`--no-start` 只部署不启动，`--dry-run` 只显示要做什么；完整说明见 `bash setup_macos.sh --help`。
+
 `start.py` 不会自己切换 Python：它用运行它的那个解释器，所以请先激活装好依赖的虚拟环境，再在同一个终端里运行。缺包时它只会提示安装命令，不会自动安装。Windows 上的 `start.bat` 等价于 `python start.py`，用的是 PATH 里的 `python`，不会自动激活 `.venv`，所以用虚拟环境时请在已激活的终端里运行，不要直接双击。
 
 `start.py` 会：
