@@ -6,32 +6,51 @@
 
 许可：Apache-2.0。欢迎提 Issue 和 PR。
 
-## 一键启动（推荐）
+## 快速开始（Windows / macOS / Linux）
+
+需要 Python 3.12（开发和测试用的版本）。
 
 ```bash
-D:\Transformer\.venv\Scripts\python.exe D:\Transformer\writing_modify\start.py
+git clone https://github.com/ResonantAlive/En-writing-modify.git
+cd En-writing-modify
+python -m venv .venv
+# 激活虚拟环境：Windows 用 .venv\Scripts\activate，macOS / Linux 用 source .venv/bin/activate
+pip install -r requirements.txt
+python start.py
 ```
 
-或在资源管理器里双击 `start.bat`。脚本会：
-1. 用项目虚拟环境 `D:\Transformer\.venv` 重新启动自己（用别的 Python 双击也行）；
-2. 检查依赖和模型目录，**只报告缺什么、给出安装命令，从不自动安装**；
-3. 启动服务（单 worker，默认只监听 `127.0.0.1:8000`）；
-4. 后台预热本地识别引擎（第一次会把 PP-OCRv6 导出成 OpenVINO 模型到 `data/ov_models/`，约 30–45 秒，之后不到 1 秒）；
-5. 服务就绪后自动打开浏览器，并在控制台显示邀请码文件的位置（不显示邀请码本身）。
+macOS / Linux 如果没有 `python` 命令，把上面的 `python` 换成 `python3`。Windows 也可以在资源管理器里双击 `start.bat`（等价于 `python start.py`）。
+
+`start.py` 会：
+1. 检查依赖和模型目录，**只报告缺什么、给出安装命令，从不自动安装**；
+2. 启动服务（单 worker，默认只监听 `127.0.0.1:8000`）；
+3. 后台预热本地识别引擎（第一次会把 PP-OCRv6 导出成 OpenVINO 模型到 `data/ov_models/`，约 30–45 秒，之后不到 1 秒）；
+4. 服务就绪后自动打开浏览器，并在控制台显示邀请码文件的位置（不显示邀请码本身）。
+
+（如果项目上一级目录里有 `..\.venv\Scripts\python.exe`，脚本会改用它重新启动自己；一般情况下可以忽略。）
+
+**只用视觉模型路线**：做完上面几步就够了，不需要额外安装。
+
+**要用本地识别路线**：PP-OCRv6 权重已随仓库提供，但第一次使用要把它导出成 OpenVINO 模型，这一步需要 `torch` 和 `transformers`（体积较大，所以没有写进 `requirements.txt`）：
+
+```bash
+pip install torch transformers
+```
+
+导出只做一次。生成的 `data/ov_models/` 不分平台，可以直接拷到别的机器，那台机器只需要 `openvino`，不用再装 torch。
 
 参数：`--no-browser` 不开浏览器；`--no-warmup` 不预热；`--check` 只做检查不启动。
 
 ## 手动启动
 
 ```bash
-cd D:\Transformer\writing_modify
-D:\Transformer\.venv\Scripts\python.exe -m app
+python -m app
 ```
 
 - 默认只监听 `127.0.0.1:8000`，**单 worker**。接口文档：`http://127.0.0.1:8000/docs`。
 - 配置：`data/app/settings.json`（首次启动自动生成，缺省项取默认值）。
 - 已有另一个服务进程在运行时，第二个进程会因拿不到执行器锁而拒绝启动。
-- 跑测试：`D:\Transformer\.venv\Scripts\python.exe -m pytest`；前端纯逻辑测试：`node frontend/tests/m5_model.test.mjs`（另有 m3_model、frontend_model）
+- 跑测试：`python -m pytest`；前端纯逻辑测试：`node frontend/tests/m5_model.test.mjs`（另有 m3_model、frontend_model）
 
 ## 本地识别（路线 1 / 视觉路线的“先本地转写”）
 
@@ -39,7 +58,7 @@ D:\Transformer\.venv\Scripts\python.exe -m app
 - 运行时依赖 `openvino`；第一次导出模型时还需要 `torch` + `transformers`。导出的 `data/ov_models/` 不分平台，可以直接拷到别的机器（例如 Mac），那台机器就不用装 torch。
 - 设置项 `ocr.backend`：`"openvino"`（默认）或 `"torch"`；`ocr.threads`：0 = 用全部核心。
 - 质量规则：原分辨率检测、FP32，不缩图、不量化（作文里的拼写错误必须原样识别出来）。
-- 评测：`D:\Transformer\.venv\Scripts\python.exe tools\ocr_eval.py`（默认读 `test_data/`，输出到 `eval_out/`）。
+- 评测：`python tools/ocr_eval.py`（默认读 `test_data/`，输出到 `eval_out/`；`test_data/` 含真实作文照片，不在仓库里，需自备带标注的数据）。
 - 拍斜的照片会先按文字行角度自动转正再还原版式。
 
 ## 答题纸模板（本地识别必需）
@@ -52,7 +71,7 @@ IG 等答题纸上印着标题、说明、页边提示、条形码和数字、�
 4. 上传作文时选择该模板。识别作文时会自动对齐并去掉这些印刷内容；批次详情里可以展开“已去除的答题纸印刷内容”核对。
 
 模板可反复使用；不能删除，拍错的页可以“停用”。root 可以把模板共享给所有人。
-核对真实照片：`D:\Transformer\.venv\Scripts\python.exe tools\sheet_check.py --blank 空白页.jpg 作文照片.jpg`
+核对真实照片：`python tools/sheet_check.py --blank 空白页.jpg 作文照片.jpg`
 
 ## 教师复核与结果汇总
 
