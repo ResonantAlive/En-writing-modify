@@ -1,6 +1,10 @@
 # writing_modify — 作文批改应用
 
-当前进度：M1–M5 全部完成（账户、上传分组、批改核心、本地识别 + 答题纸模板、教师复核与结果汇总）。
+当前进度：M1–M5 全部完成（账户、上传分组、批改核心、本地识别 + 答题纸模板、教师复核与结果汇总），另有批次共性问题报告。
+
+用 few-shot 让大模型学会老师的批改尺度的英语作文批改工具：老师先认真批改几份，系统把它们作为示范，模型批改其余作文，老师再复核。支持本地手写识别或视觉模型直接看图、答题纸模板、批次汇总、共性问题报告，以及完整的 REST API（`/api/v1`）可接入已有工作台。
+
+许可：Apache-2.0。欢迎提 Issue 和 PR。
 
 ## 一键启动（推荐）
 
@@ -31,7 +35,7 @@ D:\Transformer\.venv\Scripts\python.exe -m app
 
 ## 本地识别（路线 1 / 视觉路线的“先本地转写”）
 
-- 模型：PP-OCRv6 medium（`PP-OCRv6_medium_det_safetensors`、`PP-OCRv6_medium_rec_safetensors`，只读）。只有这一个本地引擎。
+- 模型：PP-OCRv6 medium（`PP-OCRv6_medium_det_safetensors`、`PP-OCRv6_medium_rec_safetensors`，只读）。只有这一个本地引擎。**权重已随本仓库提供**（来自 PaddleOCR 项目，Apache-2.0，两个目录里的 README 注明了许可和说明），克隆后无需另外下载；共约 157 MB，所以第一次克隆会比较大。
 - 运行时依赖 `openvino`；第一次导出模型时还需要 `torch` + `transformers`。导出的 `data/ov_models/` 不分平台，可以直接拷到别的机器（例如 Mac），那台机器就不用装 torch。
 - 设置项 `ocr.backend`：`"openvino"`（默认）或 `"torch"`；`ocr.threads`：0 = 用全部核心。
 - 质量规则：原分辨率检测、FP32，不缩图、不量化（作文里的拼写错误必须原样识别出来）。
@@ -87,6 +91,8 @@ data/       运行数据（已 gitignore，含明文 key、邀请码、学生数
   state/    counters.json、auth_state.json、locks/
   staging/  上传暂存   history/  历史批改   logs/{app,audit}
 tests/      测试（与 data/ 隔离，不含真实学生数据）
+PP-OCRv6_medium_det_safetensors/、PP-OCRv6_medium_rec_safetensors/
+            本地识别模型（PaddleOCR，Apache-2.0，随仓库提供，只读）
 DECISIONS.md  实现细节决定
 ```
 
