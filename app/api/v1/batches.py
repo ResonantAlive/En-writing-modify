@@ -18,7 +18,7 @@ from ...auth.deps import Principal, cfg_of, client_ip, require_user
 from ...batches import create as create_mod
 from ...batches import executor as executor_mod
 from ...batches import breaker as breaker_mod
-from ...batches import paths, results, review as review_mod, revisions, store
+from ...batches import paths, report as report_mod, results, review as review_mod, revisions, store
 from ...core import atomic_io
 from ...core.paths import safe_join
 from ...errors import AppError, NotFound
@@ -307,6 +307,31 @@ def regenerate_result(task_code: str, request: Request, p: Principal = Depends(r
                        409, {"status": b.get("status")})
     doc = results.generate(cfg, task_code, "manual")
     audit(cfg, p.user_id, "result.regenerate", task_code, None, client_ip(request), p.role)
+    return doc
+
+
+# ---- common-problems report (one provider call per generation)
+@router.get("/{task_code}/report")
+def get_report(task_code: str, request: Request, p: Principal = Depends(require_user)):
+    cfg = cfg_of(request)
+    b = _load(cfg, p, task_code)
+    revs = b.get("config_revisions") or []
+    cur = revs[-1] if revs else {}
+    return {"report": report_mod.read(cfg, task_code), "ready": b.get("status") in results.FINAL,
+            "default_provider_id": cur.get("provider_id"), "default_model": cur.get("model"),
+            "limits": cfg["report"]}
+
+
+@router.post("/{task_code}/report")
+def make_report(task_code: str, request: Request, body: dict = Body(default={}),
+                p: Principal = Depends(require_user)):
+    """{"provider_id"?, "model"?, "third_party_ack"?}: defaults to the batch's current provider and model."""
+    cfg = cfg_of(request)
+    _load(cfg, p, task_code)
+    doc = report_mod.generate(cfg, p, task_code, body if isinstance(body, dict) else {})
+    audit(cfg, p.user_id, "report.generate", task_code,
+          {"essays": doc["inputs"]["essays_used"], "model": doc["model"]["name"], "problems": len(doc["problems"])},
+          client_ip(request), p.role)
     return doc
 
 

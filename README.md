@@ -63,6 +63,15 @@ IG 等答题纸上印着标题、说明、页边提示、条形码和数字、�
 批次完成或取消后，详情页顶部显示“批次汇总”：已复核、待复核、失败、已取消的篇数，平均最终分，复核与 AI 的平均差。
 对应文件 `data/history/…/<task_code>/result-<task_code>.json` 在每次复核后自动更新，覆盖前把旧文件备份到同目录的 `result_backup/`（保留最近 20 份）；也可以手动“重新生成”或“下载汇总 JSON”。
 
+## 共性问题报告
+
+批次完成或取消后，详情页有“共性问题报告”：选服务商和模型，点“生成共性问题报告”，模型会汇总这个批次里学生集中出现的问题（几篇出现、典型表现、涉及哪几篇、讲评建议）和整体优点。
+
+- 每次生成调用一次模型。发送的内容：题目、评分标准、满分，以及每篇作文的编号、最终分和评价（AI 的判据与评语；老师复核并写了意见的作文改为老师的意见）。**不发送作文原文和照片。**
+- “涉及作文”的编号就是作文列表里的行号；篇数由系统按编号统计，不是模型自己算的。
+- 报告存成 `data/history/…/<task_code>/report-<task_code>.json`，重新生成前自动备份到 `report_backup/`（保留最近 20 份）；复核有改动后需要重新生成。
+- 用第三方服务商时需要先确认；本机服务商不需要。
+
 ## 邀请码（重要）
 
 首次启动会生成 `data/app/invite_codes.json`（含 `root_invite_code` 与 `user_invite_code`）。
@@ -99,6 +108,9 @@ curl -X POST http://127.0.0.1:8000/api/v1/batches/<task_code>/subtasks/<subtask_
 curl http://127.0.0.1:8000/api/v1/batches/<task_code>/subtasks/<subtask_id>/review -H "Authorization: Bearer wm_..."
 curl http://127.0.0.1:8000/api/v1/batches/<task_code>/result -H "Authorization: Bearer wm_..."
 curl -X POST http://127.0.0.1:8000/api/v1/batches/<task_code>/result/regenerate -H "Authorization: Bearer wm_..."
+# 共性问题报告：读取 / 生成（可指定服务商和模型；第三方服务商要带 third_party_ack:true）
+curl http://127.0.0.1:8000/api/v1/batches/<task_code>/report -H "Authorization: Bearer wm_..."
+curl -X POST http://127.0.0.1:8000/api/v1/batches/<task_code>/report -H "Authorization: Bearer wm_..." -H "Content-Type: application/json" -d "{}"
 ```
 
 ## 手动删除数据

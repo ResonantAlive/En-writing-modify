@@ -27,6 +27,8 @@ DEFAULTS: dict[str, Any] = {
     "breaker": {"min_processed": 10, "ratio": 0.3, "api_error_threshold": 3},
     "layout": {"line_merge_overlap": 0.5, "blank_line_factor": 1.6, "space_px": 12},
     "review": {"max_items": 200, "max_item_chars": 10000, "max_name_chars": 100, "max_body_mb": 8},
+    # batch common-problems report: per-essay text cap, total prompt cap (characters), max problems listed
+    "report": {"max_essay_chars": 3000, "max_total_chars": 150000, "max_problems": 8},
     "llm": {"timeout_s": 120, "max_tokens": 8192, "temperature": 0.0, "retry_max": 3},
     "prompt": {"max_chars": 20000},
     # local OCR = PP-OCRv6 only. backend: "openvino" (default, FP32) or "torch"; threads 0 = all cores;

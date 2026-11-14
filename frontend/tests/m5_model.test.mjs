@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
+import { reportErrorText, reportWarningText, essayNos, pct, reportMeta } from "../js/report_model.mjs";
 import { buildReviewBody, reviewErrorText, revisionLine, summaryRows, fmtScore, fmtDiff, DEFAULT_LIMITS } from "../js/review_model.mjs";
 
 let n = 0;
@@ -63,6 +64,28 @@ t("review UI: blob download only, no hrefs from data, code-point counters", () =
   assert.equal((src.match(/\.href\s*=/g) || []).length, 1);                 // the single blob: link
   assert.ok(src.includes("a.href = url;"));
   assert.ok(src.includes("cpLen(input.value)"));
+});
+
+t("report: error texts, numbers, percentages, meta line", () => {
+  assert.equal(reportErrorText({ code: "report_not_ready" }), "批次完成或取消后才能生成报告");
+  assert.equal(reportErrorText({ code: "report_too_large", detail: { essays: 40, chars: 200000, max_chars: 150000 } }), "内容太多，一次发不完：40 篇共 200000 字，上限 150000 字");
+  assert.match(reportErrorText({ code: "report_failed", detail: { http_status: 401 } }), /HTTP 401/);
+  assert.equal(reportErrorText({ code: "third_party_ack_required" }), null);      // handled by the ack flow
+  assert.equal(reportErrorText({ code: "constructor" }), null);                   // no prototype leakage
+  assert.equal(reportWarningText("unknown_essay_numbers"), "模型列出了本批次里不存在的作文编号，已忽略");
+  assert.equal(reportWarningText("brand_new"), "brand_new");
+  assert.equal(essayNos([1, 3, 12]), "作文 1、3、12"); assert.equal(essayNos([]), ""); assert.equal(essayNos(null), "");
+  assert.equal(pct(1 / 3), "33.3%"); assert.equal(pct(1), "100%"); assert.equal(pct(null), "—"); assert.equal(pct(undefined), "—");
+  const meta = reportMeta({ inputs: { essays_used: 2, essays_total: 3, reviewed: 1, excluded: { failed: 1, cancelled: 0 } }, model: { provider_alias: "mock", name: "m1" } });
+  assert.equal(meta, "mock / m1 生成 · 纳入 2 / 3 篇（其中 1 篇按老师复核） · 未纳入：失败 1");
+  assert.equal(reportMeta({ inputs: { essays_used: 3, essays_total: 3, reviewed: 0, excluded: {} }, model: {} }), " /  生成 · 纳入 3 / 3 篇（其中 0 篇按老师复核）");
+});
+
+t("report UI: shared blob download, no hrefs from data", () => {
+  const dir = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "js");
+  const rep = readFileSync(path.join(dir, "report.js"), "utf8"), rev = readFileSync(path.join(dir, "review.js"), "utf8");
+  assert.ok(rep.includes("downloadJson(") && !/\.href\s*=/.test(rep));
+  assert.equal((rev.match(/\.href\s*=/g) || []).length, 1);                      // still the single blob link
 });
 
 console.log(`m5_model tests passed: ${n}`);

@@ -7,6 +7,15 @@ import { errorBox, spinner, toast, confirmModal } from "./ui.js";
 import { cpLen } from "./render_model.mjs";
 import { DEFAULT_LIMITS, buildReviewBody, reviewErrorText, revisionLine, fmtScore, summaryRows, RESULT_TRIGGER } from "./review_model.mjs";
 
+/** Save a JSON document through a locally created blob: link (no data-derived URL). */
+export function downloadJson(name, obj) {
+  const url = URL.createObjectURL(new Blob([JSON.stringify(obj, null, 2)], { type: "application/json" }));
+  const a = document.createElement("a");
+  a.href = url; a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
 const friendly = (e) => { const t = reviewErrorText(e); return t ? { ...e, message: t } : e; };
 
 function counter(input, max) {
@@ -132,12 +141,7 @@ export function resultPanel(code) {
     catch (e) { if (e.code === "result_not_ready") mount(root); else mount(root, h("h2", { text: "批次汇总" }), errorBox(e)); }
   }
   function download() {
-    if (!doc) return;
-    const url = URL.createObjectURL(new Blob([JSON.stringify(doc, null, 2)], { type: "application/json" }));
-    const a = document.createElement("a");
-    a.href = url; a.download = `result-${String(doc.task_code).replace(/[^A-Za-z0-9_-]/g, "_")}.json`;
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    if (doc) downloadJson(`result-${String(doc.task_code).replace(/[^A-Za-z0-9_-]/g, "_")}.json`, doc);
   }
   async function regen(e) {
     e.target.disabled = true; mount(msg);

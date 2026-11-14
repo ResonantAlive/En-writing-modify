@@ -98,23 +98,28 @@ def build(cfg, task_code: str, trigger: str) -> dict:
             "subtasks": rows}
 
 
-def _backup(cfg, task_code: str, cur: Path) -> None:
-    d = backup_dir(cfg, task_code)
+def backup_file(cfg, task_code: str, cur: Path, sub: str = "result_backup", prefix: str = "result") -> None:
+    """Copy `cur` to <batch dir>/<sub>/<prefix>-<task_code>.<stamp>.json and keep the newest `result_backups_keep`."""
+    d = paths.batch_dir(cfg, task_code) / sub
     d.mkdir(parents=True, exist_ok=True)
     stamp = clock.now().strftime("%Y%m%dT%H%M%S%f")
-    dst = d / f"result-{task_code}.{stamp}.json"
+    dst = d / f"{prefix}-{task_code}.{stamp}.json"
     k = 1
     while dst.exists():
-        dst = d / f"result-{task_code}.{stamp}-{k}.json"
+        dst = d / f"{prefix}-{task_code}.{stamp}-{k}.json"
         k += 1
     atomic_io.write_bytes_atomic(dst, atomic_io.read_bytes(cur))
     keep = max(1, int(cfg["result_backups_keep"]))
-    olds = sorted(d.glob(f"result-{task_code}.*.json"), key=lambda p: (p.stat().st_mtime_ns, p.name))
+    olds = sorted(d.glob(f"{prefix}-{task_code}.*.json"), key=lambda p: (p.stat().st_mtime_ns, p.name))
     for p in olds[:-keep]:
         try:
             p.unlink()
         except OSError:
-            log.warning("could not remove old result backup %s", p.name)
+            log.warning("could not remove old backup %s", p.name)
+
+
+def _backup(cfg, task_code: str, cur: Path) -> None:
+    backup_file(cfg, task_code, cur)
 
 
 def generate(cfg, task_code: str, trigger: str = "manual") -> dict:

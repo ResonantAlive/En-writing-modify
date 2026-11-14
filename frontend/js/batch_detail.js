@@ -8,6 +8,7 @@ import { renderGrading, warningsView, attemptView } from "./result_view.js";
 import { preflightAck, confirmForProvider } from "./thirdparty.js";
 import { prominentWarnings } from "./render_model.mjs";
 import { reviewPanel, resultPanel } from "./review.js";
+import { reportPanel } from "./report.js";
 import { fmtScore } from "./review_model.mjs";
 
 const EXCLUDE_REASON = {
@@ -36,8 +37,8 @@ const REV_REASON = { initial: "创建时", user_change: "手动调整", auto: "�
 const isPaused = (s) => s === "paused_circuit_breaker" || s === "paused_api_errors";
 
 export function renderBatchDetail(root, ctx, code) {
-  const errHost = h("div"), headHost = h("div"), pauseHost = h("div"), cfgHost = h("div"), revHost = h("div"), subHost = h("div"), resHost = h("div");
-  let es = null, alive = true, batch = null, subTimer = null, subs = [], lastStatus = null, result = null;
+  const errHost = h("div"), headHost = h("div"), pauseHost = h("div"), cfgHost = h("div"), revHost = h("div"), subHost = h("div"), resHost = h("div"), repHost = h("div");
+  let es = null, alive = true, batch = null, subTimer = null, subs = [], lastStatus = null, result = null, report = null;
   const expanded = new Set(), cache = new Map(); // sid -> {status, detail}
   const panels = new Map(); // sid -> {status, el}: review forms are built once so typing survives table repaints
 
@@ -51,8 +52,9 @@ export function renderBatchDetail(root, ctx, code) {
   }
   function paintResult() {
     const fin = batch && (batch.status === "completed" || batch.status === "cancelled");
-    if (!fin) { result = null; mount(resHost); return; }
+    if (!fin) { result = null; report = null; mount(resHost); mount(repHost); return; }
     if (result) result.reload(); else { result = resultPanel(code); mount(resHost, result.el); }
+    if (!report) { report = reportPanel(code); mount(repHost, report.el); }      // built once: a running generation survives repaints
   }
 
   const showErr = (e) => mount(errHost, errorBox(e));
@@ -326,7 +328,7 @@ export function renderBatchDetail(root, ctx, code) {
 
   mount(root, h("section", { class: "page" },
     h("div", { class: "row" }, h("button", { type: "button", class: "btn btn-small", text: "← 返回批次列表", onclick: () => ctx.go("#/batches") })),
-    errHost, headHost, pauseHost, cfgHost, resHost, revHost, h("div", { class: "card" }, h("h2", { text: "作文列表" }), subHost)));
+    errHost, headHost, pauseHost, cfgHost, resHost, repHost, revHost, h("div", { class: "card" }, h("h2", { text: "作文列表" }), subHost)));
   mount(headHost, spinner()); mount(subHost, spinner());
   loadBatch(); loadSubs();
   if (typeof EventSource !== "undefined") {

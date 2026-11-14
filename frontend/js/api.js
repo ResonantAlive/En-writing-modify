@@ -121,6 +121,8 @@ export const api = {
   submitReview: (code, sid, body) => post(`/batches/${encodeURIComponent(code)}/subtasks/${encodeURIComponent(sid)}/review`, body),
   getResult: (code) => get(`/batches/${encodeURIComponent(code)}/result`),
   regenerateResult: (code) => post(`/batches/${encodeURIComponent(code)}/result/regenerate`),
+  getReport: (code) => get(`/batches/${encodeURIComponent(code)}/report`),
+  makeReport: (code, body) => post(`/batches/${encodeURIComponent(code)}/report`, body || {}),
   // providers
   listProviders: () => get("/providers"),
   createProvider: (body) => post("/providers", body),

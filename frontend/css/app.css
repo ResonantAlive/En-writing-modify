@@ -227,3 +227,6 @@ body.dragging { cursor: grabbing; user-select: none; -webkit-user-select: none; 
 .score-input { width: 8em; } .inline-label { font-weight: 600; }
 .score-cell { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; } .score-final { font-weight: 600; }
 .pre-wrap { white-space: pre-wrap; overflow-wrap: anywhere; }
+/* batch common-problems report */
+.report-problems { display: grid; gap: 10px; margin: 8px 0; }
+.report-problem { border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; display: grid; gap: 4px; }
